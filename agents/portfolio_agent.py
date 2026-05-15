@@ -102,8 +102,8 @@ Türkçe yaz.
             contents=prompt
         )
         gemini_explanation = response.text
-    except Exception:
-        gemini_explanation = "Portföy açıklaması şu an üretilemiyor."
+    except Exception as e:
+        gemini_explanation = f"Portföy açıklaması şu an üretilemiyor. Hata: {str(e)}"
 
     return {
         "portfolio": portfolio,

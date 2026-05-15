@@ -48,10 +48,13 @@ def show_dashboard():
     if unread:
         st.markdown("### 🔔 Piyasa Alarmları")
         for alarm in unread[:3]:
-            severity = "high" if any(w in alarm['message'] for w in ['🚨', '⚠️']) else ""
+            msg = alarm.get('message', '')
+            if not msg:
+                continue
+            severity = "high" if any(w in msg for w in ['🚨', '⚠️']) else ""
             st.markdown(f"""
             <div class='alarm-card {severity}'>
-                {alarm['message']}
+                {msg}
             </div>
             """, unsafe_allow_html=True)
 
@@ -170,7 +173,7 @@ def show_dashboard():
         <div class='metric-card' style='margin-bottom:1rem;'>
             <div style='font-size:0.85rem; color:#718096;'>Bugünkü Hedef</div>
             <div style='font-size:1.2rem; font-weight:700;'>{goal_analysis['current_amount']:,.0f} ₺</div>
-            <div style='font-size:0.75rem; color:#FC8181;'>→ {goal_analysis['future_amount']:,.0f} ₺ ({goal_analysis['goal_years']} yıl sonra, enflasyon dahil)</div>
+            <div style='font-size:0.75rem; color:#FC8181;'>→ {goal_analysis['future_amount']:,.0f} ₺ ({goal_analysis.get('years', profile.get('goal_years', 5))} yıl sonra, enflasyon dahil)</div>
         </div>
         """, unsafe_allow_html=True)
 

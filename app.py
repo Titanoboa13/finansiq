@@ -83,10 +83,12 @@ st.markdown("""
         padding: 0.8rem 1rem;
         margin-bottom: 0.5rem;
         font-size: 0.85rem;
+        color: #1A1A2E !important;
     }
     .alarm-card.high {
         background: #FFF5F5;
         border-left-color: #FC8181;
+        color: #1A1A2E !important;
     }
     .success-card {
         background: #F0FFF4;
