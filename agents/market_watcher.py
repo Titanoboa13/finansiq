@@ -2,28 +2,25 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google import genai
+from utils.gemini_client import safe_generate
 from utils.market_data import get_all_market_data
 from database.db import save_alarm, get_market_cache, save_market_cache
 import json
 from datetime import datetime
 
-# --- EŞİK DEĞERLERİ ---
 THRESHOLDS = {
-    "usd_try_spike": 2.0,        # Dolar %2'den fazla artarsa
-    "gold_spike": 3.0,            # Altın %3'ten fazla artarsa
-    "bist_crash": -3.0,           # BIST %3'ten fazla düşerse
-    "usd_try_high": 42.0,         # Dolar 42 TL'yi geçerse
-    "usd_try_low": 35.0,          # Dolar 35 TL'nin altına düşerse
+    "usd_try_spike": 2.0,
+    "gold_spike": 3.0,
+    "bist_crash": -3.0,
+    "usd_try_high": 42.0,
+    "usd_try_low": 35.0,
 }
 
-# --- SABİT HABER KONTROL (Gerçek projede API ile yapılır) ---
 MOCK_NEWS_EVENTS = []
 
 def check_price_changes(current_data: dict, previous_data: dict) -> list:
     alerts = []
 
-    # USD/TL değişimi
     curr_usd = current_data.get('usd_try', {}).get('value', 0)
     prev_usd = previous_data.get('usd_try', 0)
     if prev_usd > 0 and curr_usd > 0:
@@ -45,7 +42,6 @@ def check_price_changes(current_data: dict, previous_data: dict) -> list:
                 "action": "simulate_tl"
             })
 
-    # Dolar eşik kontrolü
     if curr_usd >= THRESHOLDS['usd_try_high']:
         alerts.append({
             "type": "usd_high",
@@ -55,7 +51,6 @@ def check_price_changes(current_data: dict, previous_data: dict) -> list:
             "action": "review_tl_assets"
         })
 
-    # Altın değişimi
     curr_gold = current_data.get('gold_gram_try', {}).get('value', 0)
     prev_gold = previous_data.get('gold_gram_try', 0)
     if prev_gold > 0 and curr_gold > 0:
@@ -69,7 +64,6 @@ def check_price_changes(current_data: dict, previous_data: dict) -> list:
                 "action": "review_gold"
             })
 
-    # BIST düşüşü
     curr_bist = current_data.get('bist100', {}).get('value', 0)
     prev_bist = previous_data.get('bist100', 0)
     if prev_bist > 0 and curr_bist > 0:
@@ -93,7 +87,6 @@ def get_static_alerts(market_data: dict, profile_data: dict) -> list:
     tcmb_rate = market_data.get('tcmb_rate', {}).get('value', 0)
     fed_rate = market_data.get('fed_rate', {}).get('value', 0)
 
-    # Yüksek enflasyon uyarısı
     if inflation > 50:
         alerts.append({
             "type": "high_inflation",
@@ -103,7 +96,6 @@ def get_static_alerts(market_data: dict, profile_data: dict) -> list:
             "action": "inflation_protection"
         })
 
-    # TCMB ve FED faiz farkı
     if tcmb_rate > 0 and fed_rate > 0:
         rate_diff = tcmb_rate - fed_rate
         if rate_diff > 30:
@@ -115,7 +107,6 @@ def get_static_alerts(market_data: dict, profile_data: dict) -> list:
                 "action": "rate_analysis"
             })
 
-    # Muhafazakâr profil için dolar yüksekse uyarı
     if risk_profile == "Muhafazakâr" and curr_usd > 40:
         alerts.append({
             "type": "conservative_usd_warning",
@@ -142,15 +133,10 @@ Bu alarmı kullanıcıya 2 cümleyle açıkla ve ne yapması gerektiğini söyle
 Panik yaratma, sakin ve bilgilendirici ol.
 Türkçe yaz.
 """
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        return response.text
-    except Exception:
-        return alert['message']
+    return safe_generate(
+        prompt=prompt,
+        fallback=alert['message']
+    )
 
 def run_market_watcher(user_id: int, profile_data: dict, api_key: str) -> list:
     current_data = get_all_market_data()
@@ -170,7 +156,6 @@ def run_market_watcher(user_id: int, profile_data: dict, api_key: str) -> list:
     static_alerts = get_static_alerts(current_data, profile_data)
     new_alerts.extend(static_alerts)
 
-    # Mevcut veriyi cache'e kaydet
     cache_data = {
         "usd_try": current_data.get('usd_try', {}).get('value', 0),
         "eur_try": current_data.get('eur_try', {}).get('value', 0),
@@ -180,7 +165,6 @@ def run_market_watcher(user_id: int, profile_data: dict, api_key: str) -> list:
     }
     save_market_cache(cache_key, json.dumps(cache_data))
 
-    # Alarmları veritabanına kaydet
     for alert in new_alerts:
         try:
             save_alarm(user_id, alert['type'], alert['message'])

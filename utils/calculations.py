@@ -1,8 +1,6 @@
 import numpy as np
 from datetime import datetime
 
-# --- ENFLASYON DÜZELTMELİ HEDEF HESAPLAMA ---
-
 INFLATION_RATES = {
     "konut": 0.45,
     "araç": 0.40,
@@ -31,8 +29,6 @@ def calculate_real_goal_amount(current_amount: float, goal_type: str, years: int
         "multiplier": round(future_amount / current_amount, 2)
     }
 
-# --- PORTFÖy DAĞILIMI ---
-
 PORTFOLIO_TEMPLATES = {
     "Muhafazakâr": {
         "Altın": 0.30,
@@ -58,11 +54,11 @@ PORTFOLIO_TEMPLATES = {
 }
 
 EXPECTED_RETURNS = {
-    "Altın": 0.35,
-    "Dolar/Euro": 0.25,
-    "BIST Hisseleri": 0.45,
-    "Devlet Tahvili": 0.40,
-    "Mevduat": 0.38,
+    "Altın": 0.20,
+    "Dolar/Euro": 0.15,
+    "BIST Hisseleri": 0.25,
+    "Devlet Tahvili": 0.18,
+    "Mevduat": 0.40,
 }
 
 def get_portfolio_for_profile(risk_profile: str) -> dict:
@@ -71,11 +67,9 @@ def get_portfolio_for_profile(risk_profile: str) -> dict:
 def calculate_portfolio_return(portfolio: dict) -> float:
     total_return = 0
     for asset, weight in portfolio.items():
-        expected = EXPECTED_RETURNS.get(asset, 0.30)
+        expected = EXPECTED_RETURNS.get(asset, 0.20)
         total_return += weight * expected
     return round(total_return, 4)
-
-# --- PROJEKSİYON HESAPLAMA ---
 
 def calculate_projection(
     initial_savings: float,
@@ -102,8 +96,6 @@ def calculate_projection(
         "total_contributed": round(monthly_contribution * 12 * years, 2)
     }
 
-# --- HEDEFE ULAŞMA OLASILIĞI ---
-
 def calculate_goal_probability(
     projected_value: float,
     real_goal_amount: float,
@@ -116,7 +108,7 @@ def calculate_goal_probability(
         ratio = projected_value / real_goal_amount
         base_prob = max(5, ratio * 70)
 
-    volatility_penalty = {"BIST": 5, "Altın": 3, "Döviz": 2}.get("Altın", 2)
+    volatility_penalty = 2
     final_prob = max(5, min(95, base_prob - volatility_penalty))
 
     shortage = max(0, real_goal_amount - projected_value)
@@ -138,37 +130,56 @@ def calculate_goal_probability(
         "on_track": projected_value >= real_goal_amount
     }
 
-# --- SENARYO ANALİZİ ---
-
 def apply_scenario(
     base_portfolio: dict,
     scenario_type: str,
     scenario_value: float,
     initial_savings: float,
-    years: int
+    years: int,
+    monthly_contribution: float = 0
 ) -> dict:
     modified_returns = EXPECTED_RETURNS.copy()
+    instant_multiplier = 1.0
 
     if scenario_type == "usd_increase":
-        modified_returns["Dolar/Euro"] = modified_returns["Dolar/Euro"] + scenario_value / 100
+        usd_weight = base_portfolio.get("Dolar/Euro", 0)
+        gold_weight = base_portfolio.get("Altın", 0)
+        bist_weight = base_portfolio.get("BIST Hisseleri", 0)
+        mevduat_weight = base_portfolio.get("Mevduat", 0)
+        instant_multiplier = 1.0 + (
+            usd_weight * (scenario_value / 100) +
+            gold_weight * (scenario_value / 100 * 0.5) -
+            bist_weight * (scenario_value / 100 * 0.1) -
+            mevduat_weight * (scenario_value / 100 * 0.05)
+        )
+
     elif scenario_type == "bist_crash":
-        modified_returns["BIST Hisseleri"] = modified_returns["BIST Hisseleri"] - scenario_value / 100
+        bist_weight = base_portfolio.get("BIST Hisseleri", 0)
+        crash_rate = min(scenario_value / 100, 0.50)
+        instant_multiplier = 1.0 - (bist_weight * crash_rate)
+
     elif scenario_type == "inflation_drop":
-        for key in modified_returns:
-            modified_returns[key] = max(0.05, modified_returns[key] - scenario_value / 200)
-    elif scenario_type == "extra_monthly":
-        pass
+        modified_returns["Mevduat"] = max(0.10, modified_returns["Mevduat"] - scenario_value / 100 * 0.5)
+        modified_returns["Devlet Tahvili"] = modified_returns["Devlet Tahvili"] + scenario_value / 100 * 0.1
+        modified_returns["BIST Hisseleri"] = modified_returns["BIST Hisseleri"] + scenario_value / 100 * 0.15
+
     elif scenario_type == "gold_increase":
-        modified_returns["Altın"] = modified_returns["Altın"] + scenario_value / 100
+        gold_weight = base_portfolio.get("Altın", 0)
+        instant_multiplier = 1.0 + (gold_weight * scenario_value / 100)
+
+    elif scenario_type == "extra_monthly":
+        monthly_contribution = monthly_contribution + scenario_value
 
     scenario_return = sum(
-        base_portfolio.get(asset, 0) * modified_returns.get(asset, 0.30)
+        base_portfolio.get(asset, 0) * modified_returns.get(asset, 0.20)
         for asset in base_portfolio
     )
 
+    shocked_savings = initial_savings * instant_multiplier
+
     projection = calculate_projection(
-        initial_savings=initial_savings,
-        monthly_contribution=scenario_value if scenario_type == "extra_monthly" else 0,
+        initial_savings=shocked_savings,
+        monthly_contribution=monthly_contribution,
         annual_return=scenario_return,
         years=years
     )
@@ -180,8 +191,6 @@ def apply_scenario(
         "final_value": projection["final_value"],
         "projection_by_year": projection["projection_by_year"]
     }
-
-# --- HARCAMA ANALİZİ ---
 
 EXPENSE_THRESHOLDS = {
     "Market ve Gıda": 0.25,

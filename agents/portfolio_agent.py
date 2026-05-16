@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google import genai
+from utils.gemini_client import safe_generate
 from utils.calculations import (
     get_portfolio_for_profile,
     calculate_portfolio_return,
@@ -16,17 +16,14 @@ from utils.rag_system import get_rag_context
 def run_portfolio_agent(profile_data: dict, api_key: str) -> dict:
     with_status = []
 
-    # Adım 1: Piyasa verisi
     with_status.append("📊 Piyasa verileri çekiliyor...")
     market_data = get_all_market_data()
 
-    # Adım 2: Portföy dağılımı
     with_status.append("💼 Portföy analiz ediliyor...")
     risk_profile = profile_data.get('risk_profile', 'Dengeli')
     portfolio = get_portfolio_for_profile(risk_profile)
     annual_return = calculate_portfolio_return(portfolio)
 
-    # Adım 3: Enflasyon düzeltmeli hedef
     with_status.append("🎯 Hedef analizi yapılıyor...")
     goal_amount = profile_data.get('goal_amount', 0)
     goal_type = profile_data.get('financial_goal', 'diğer')
@@ -39,7 +36,6 @@ def run_portfolio_agent(profile_data: dict, api_key: str) -> dict:
     goal_analysis = calculate_real_goal_amount(goal_amount, goal_type, goal_years)
     real_goal = goal_analysis['future_amount']
 
-    # Adım 4: Projeksiyon
     with_status.append("📈 Projeksiyon hesaplanıyor...")
     projection = calculate_projection(
         initial_savings=total_savings,
@@ -48,7 +44,6 @@ def run_portfolio_agent(profile_data: dict, api_key: str) -> dict:
         years=goal_years
     )
 
-    # Adım 5: Hedef olasılığı
     goal_probability = calculate_goal_probability(
         projected_value=projection['final_value'],
         real_goal_amount=real_goal,
@@ -56,7 +51,6 @@ def run_portfolio_agent(profile_data: dict, api_key: str) -> dict:
         years=goal_years
     )
 
-    # Adım 6: RAG + Gemini açıklama
     with_status.append("🤖 Gemini öneriler üretiyor...")
     rag_context = get_rag_context(f"Türkiye'de {risk_profile} risk profiline uygun portföy önerisi")
 
@@ -95,15 +89,10 @@ Her yatırım aracı için kısa bir gerekçe ver.
 Türkçe yaz.
 """
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        gemini_explanation = response.text
-    except Exception as e:
-        gemini_explanation = f"Portföy açıklaması şu an üretilemiyor. Hata: {str(e)}"
+    gemini_explanation = safe_generate(
+        prompt=prompt,
+        fallback="Portföy açıklaması şu an üretilemiyor."
+    )
 
     return {
         "portfolio": portfolio,

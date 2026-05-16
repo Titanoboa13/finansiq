@@ -2,8 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google import genai
-from google.genai import types
+from utils.gemini_client import safe_generate
 
 LITERACY_QUESTIONS = [
     {
@@ -176,15 +175,9 @@ Türkçe yaz.
 """
 
 def run_profile_agent(profile_data: dict, api_key: str) -> str:
-    try:
-        client = genai.Client(api_key=api_key)
-        communication_level = profile_data.get('communication_level', 'orta')
-        prompt = get_profile_summary_prompt(profile_data, communication_level)
-
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        return response.text
-    except Exception as e:
-        return f"Profil analizi şu an yapılamıyor. Lütfen tekrar deneyin."
+    communication_level = profile_data.get('communication_level', 'orta')
+    prompt = get_profile_summary_prompt(profile_data, communication_level)
+    return safe_generate(
+        prompt=prompt,
+        fallback="Profil analizi şu an yapılamıyor. Lütfen tekrar deneyin."
+    )

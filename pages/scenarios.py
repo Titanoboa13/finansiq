@@ -46,6 +46,7 @@ def show_scenarios():
     # Real goal amount'u profile'a ekle
     profile_with_goal = dict(profile)
     profile_with_goal['real_goal_amount'] = goal_analysis['future_amount']
+    profile_with_goal['monthly_contribution'] = result.get('monthly_contribution', 0)
 
     # --- MEVCUT DURUM ---
     col1, col2, col3 = st.columns(3)
@@ -206,10 +207,8 @@ def show_scenarios():
         st.plotly_chart(fig, use_container_width=True)
 
         # Gemini yorumu
+        st.markdown("#### 🤖 Gemini'nin Senaryo Yorumu")
         if sr.get('gemini_comment'):
-            st.markdown("#### 🤖 Gemini'nin Senaryo Yorumu")
-            st.markdown(f"""
-            <div class='success-card'>
-                {sr['gemini_comment']}
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(sr['gemini_comment'])
+        else:
+            st.info("⏳ Gemini yorumu yüklenemedi. Tekrar deneyin.")

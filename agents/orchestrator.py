@@ -2,9 +2,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google import genai
+from utils.gemini_client import safe_generate
 from utils.rag_system import get_rag_context
-from utils.market_data import get_all_market_data
 
 RISK_KEYWORDS = [
     "kripto", "bitcoin", "ethereum", "tüm param", "bütün param",
@@ -49,7 +48,6 @@ def run_chat_agent(
     risk_profile = profile_data.get('risk_profile', 'Dengeli')
     is_risky = detect_risk(message)
 
-    # RAG context çek
     rag_context = get_rag_context(message)
 
     if communication_level == 'basit':
@@ -100,15 +98,10 @@ Kullanıcının Sorusu: {message}
 Kısa, net ve yardımcı bir yanıt ver. Türkçe yaz.
 """
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        reply = response.text
-    except Exception as e:
-        reply = "Şu an yanıt üretemiyorum. Lütfen tekrar deneyin."
+    reply = safe_generate(
+        prompt=prompt,
+        fallback="Şu an yanıt üretemiyorum. Lütfen tekrar deneyin."
+    )
 
     return {
         "reply": reply,
@@ -146,12 +139,7 @@ Her madde somut ve uygulanabilir olsun.
 Türkçe yaz.
 """
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        return response.text
-    except Exception:
-        return "Kişisel tavsiyeler şu an üretilemiyor."
+    return safe_generate(
+        prompt=prompt,
+        fallback="Kişisel tavsiyeler şu an üretilemiyor."
+    )

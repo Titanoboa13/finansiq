@@ -2,10 +2,10 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import pandas as pd
-from google import genai
+from utils.gemini_client import safe_generate
 from utils.calculations import analyze_expenses
 from utils.rag_system import get_rag_context
+import pandas as pd
 
 EXPENSE_CATEGORIES = [
     "Market ve Gıda",
@@ -92,10 +92,7 @@ def run_expense_agent(
     monthly_income = profile_data.get('monthly_income', 0)
     communication_level = profile_data.get('communication_level', 'orta')
 
-    # Harcama analizi
     analysis = analyze_expenses(expenses, monthly_income)
-
-    # RAG context
     rag_context = get_rag_context("Türkiye'de kişisel bütçe yönetimi ve tasarruf yöntemleri")
 
     if communication_level == 'basit':
@@ -134,15 +131,10 @@ Somut tasarruf önerileri sun.
 Türkçe yaz.
 """
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        gemini_comment = response.text
-    except Exception:
-        gemini_comment = "Harcama analizi yorumu şu an üretilemiyor."
+    gemini_comment = safe_generate(
+        prompt=prompt,
+        fallback="Harcama analizi yorumu şu an üretilemiyor."
+    )
 
     return {
         "analysis": analysis,

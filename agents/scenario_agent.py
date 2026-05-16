@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from google import genai
+from utils.gemini_client import safe_generate
 from utils.calculations import apply_scenario, calculate_goal_probability
 from utils.rag_system import get_rag_context
 
@@ -56,22 +56,18 @@ def run_scenario_agent(
     total_savings = profile_data.get('total_savings', 0)
     goal_years = profile_data.get('goal_years', 5)
     real_goal = profile_data.get('real_goal_amount', 0)
-    annual_return_base = sum(
-        portfolio.get(asset, 0) * 0.35
-        for asset in portfolio
-    )
     communication_level = profile_data.get('communication_level', 'orta')
+    monthly_contribution = profile_data.get('monthly_contribution', 0)
 
-    # Senaryo hesapla
     scenario_result = apply_scenario(
         base_portfolio=portfolio,
         scenario_type=scenario_type,
         scenario_value=scenario_value,
         initial_savings=total_savings,
-        years=goal_years
+        years=goal_years,
+        monthly_contribution=monthly_contribution
     )
 
-    # Yeni olasılık hesapla
     new_probability = calculate_goal_probability(
         projected_value=scenario_result['final_value'],
         real_goal_amount=real_goal if real_goal > 0 else profile_data.get('goal_amount', 1),
@@ -84,7 +80,6 @@ def run_scenario_agent(
     change_amount = new_final - base_final
     change_percent = (change_amount / base_final * 100) if base_final > 0 else 0
 
-    # RAG context
     scenario_def = SCENARIO_DEFINITIONS.get(scenario_type, {})
     rag_query = f"Türkiye'de {scenario_def.get('description', scenario_type)} durumunda yatırım stratejisi"
     rag_context = get_rag_context(rag_query)
@@ -117,15 +112,10 @@ Ne yapılması gerektiğini öner.
 Türkçe yaz.
 """
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
-        )
-        gemini_comment = response.text
-    except Exception:
-        gemini_comment = "Senaryo yorumu şu an üretilemiyor."
+    gemini_comment = safe_generate(
+        prompt=prompt,
+        fallback="Senaryo yorumu şu an üretilemiyor."
+    )
 
     return {
         "scenario_type": scenario_type,
