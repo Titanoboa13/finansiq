@@ -1,7 +1,6 @@
 import os
 import sys
 import io
-import base64
 from datetime import datetime
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -11,8 +10,62 @@ from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle, HRFlowable
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+def _register_fonts():
+    font_paths = [
+        ("TurkishFont", r"C:\Windows\Fonts\arial.ttf"),
+        ("TurkishFont", r"C:\Windows\Fonts\tahoma.ttf"),
+        ("TurkishFont", r"C:\Windows\Fonts\calibri.ttf"),
+    ]
+    font_bold_paths = [
+        ("TurkishFontBold", r"C:\Windows\Fonts\arialbd.ttf"),
+        ("TurkishFontBold", r"C:\Windows\Fonts\tahomabd.ttf"),
+        ("TurkishFontBold", r"C:\Windows\Fonts\calibrib.ttf"),
+    ]
+    font_italic_paths = [
+        ("TurkishFontItalic", r"C:\Windows\Fonts\ariali.ttf"),
+        ("TurkishFontItalic", r"C:\Windows\Fonts\calibrii.ttf"),
+    ]
+
+    reg_font = "Helvetica"
+    reg_bold = "Helvetica-Bold"
+    reg_italic = "Helvetica-Oblique"
+
+    for name, path in font_paths:
+        if os.path.exists(path):
+            try:
+                pdfmetrics.registerFont(TTFont(name, path))
+                reg_font = name
+                break
+            except:
+                continue
+
+    for name, path in font_bold_paths:
+        if os.path.exists(path):
+            try:
+                pdfmetrics.registerFont(TTFont(name, path))
+                reg_bold = name
+                break
+            except:
+                continue
+
+    for name, path in font_italic_paths:
+        if os.path.exists(path):
+            try:
+                pdfmetrics.registerFont(TTFont(name, path))
+                reg_italic = name
+                break
+            except:
+                continue
+
+    return reg_font, reg_bold, reg_italic
+
+FONT_REGULAR, FONT_BOLD, FONT_ITALIC = _register_fonts()
+
 
 def fig_to_image(fig, width=400, height=300):
     try:
@@ -65,7 +118,7 @@ def create_projection_chart(projection_data: list, goal_amount: float, goal_type
     fig.update_layout(
         title="5 Yıllık Birikim Projeksiyonu",
         xaxis_title="Yıl",
-        yaxis_title="Değer (₺)",
+        yaxis_title="Değer (TL)",
         paper_bgcolor='white',
         plot_bgcolor='white',
         font=dict(family="Arial", size=11),
@@ -81,13 +134,13 @@ def create_expense_bar_chart(category_totals: dict):
         x=categories,
         y=amounts,
         marker_color='#2E86AB',
-        text=[f'{a:,.0f} ₺' for a in amounts],
+        text=[f'{a:,.0f} TL' for a in amounts],
         textposition='auto',
     )])
     fig.update_layout(
         title="Harcama Kategorileri",
         xaxis_title="Kategori",
-        yaxis_title="Tutar (₺)",
+        yaxis_title="Tutar (TL)",
         paper_bgcolor='white',
         plot_bgcolor='white',
         font=dict(family="Arial", size=10),
@@ -126,7 +179,7 @@ def generate_pdf_report(
         textColor=colors.HexColor('#1A1A2E'),
         spaceAfter=6,
         alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+        fontName=FONT_BOLD
     )
     style_subtitle = ParagraphStyle(
         'CustomSubtitle',
@@ -135,7 +188,7 @@ def generate_pdf_report(
         textColor=colors.HexColor('#16213E'),
         spaceAfter=4,
         alignment=TA_CENTER,
-        fontName='Helvetica'
+        fontName=FONT_REGULAR
     )
     style_heading = ParagraphStyle(
         'CustomHeading',
@@ -144,7 +197,7 @@ def generate_pdf_report(
         textColor=colors.HexColor('#0F3460'),
         spaceBefore=12,
         spaceAfter=6,
-        fontName='Helvetica-Bold'
+        fontName=FONT_BOLD
     )
     style_body = ParagraphStyle(
         'CustomBody',
@@ -153,7 +206,7 @@ def generate_pdf_report(
         textColor=colors.HexColor('#2C3E50'),
         spaceAfter=4,
         leading=14,
-        fontName='Helvetica'
+        fontName=FONT_REGULAR
     )
     style_warning = ParagraphStyle(
         'Warning',
@@ -162,7 +215,7 @@ def generate_pdf_report(
         textColor=colors.HexColor('#7F8C8D'),
         spaceAfter=4,
         alignment=TA_CENTER,
-        fontName='Helvetica-Oblique'
+        fontName=FONT_ITALIC
     )
 
     story = []
@@ -177,7 +230,7 @@ def generate_pdf_report(
 
     user_name = f"{user_data.get('name', '')} {user_data.get('surname', '')}"
     report_date = datetime.now().strftime("%d.%m.%Y %H:%M")
-    story.append(Paragraph(f"Hazırlanan: <b>{user_name}</b>", style_body))
+    story.append(Paragraph(f"Hazırlayan: <b>{user_name}</b>", style_body))
     story.append(Paragraph(f"Tarih: {report_date}", style_body))
     story.append(Spacer(1, 1*cm))
 
@@ -196,15 +249,16 @@ def generate_pdf_report(
         ['Finansal Okuryazarlık Skoru', f"{literacy_score}/10"],
         ['Finansal Hedef', goal],
         ['Hedef Süresi', f"{goal_years} yıl"],
-        ['Aylık Gelir', f"{profile_data.get('monthly_income', 0):,.0f} ₺"],
-        ['Toplam Birikim', f"{profile_data.get('total_savings', 0):,.0f} ₺"],
+        ['Aylık Gelir', f"{profile_data.get('monthly_income', 0):,.0f} TL"],
+        ['Toplam Birikim', f"{profile_data.get('total_savings', 0):,.0f} TL"],
     ]
 
     profile_table = Table(profile_table_data, colWidths=[6*cm, 10*cm])
     profile_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#EBF5FB')),
         ('TEXTCOLOR', (0, 0), (0, -1), colors.HexColor('#0F3460')),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 0), (0, -1), FONT_BOLD),
+        ('FONTNAME', (1, 0), (1, -1), FONT_REGULAR),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('ROWBACKGROUNDS', (0, 0), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#BDC3C7')),
@@ -213,7 +267,7 @@ def generate_pdf_report(
     story.append(profile_table)
     story.append(Spacer(1, 0.8*cm))
 
-    # --- PORTFÖy ÖNERİSİ ---
+    # --- PORTFÖY ÖNERİSİ ---
     story.append(Paragraph("2. Portföy Önerisi", style_heading))
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#BDC3C7')))
     story.append(Spacer(1, 0.3*cm))
@@ -227,14 +281,15 @@ def generate_pdf_report(
     portfolio_table_data = [['Yatırım Aracı', 'Ağırlık', 'Tahmini Yıllık Getiri']]
     from utils.calculations import EXPECTED_RETURNS
     for asset, weight in portfolio.items():
-        ret = EXPECTED_RETURNS.get(asset, 0.30)
+        ret = EXPECTED_RETURNS.get(asset, 0.20)
         portfolio_table_data.append([asset, f"%{weight*100:.0f}", f"%{ret*100:.0f}"])
 
     portfolio_table = Table(portfolio_table_data, colWidths=[7*cm, 5*cm, 5*cm])
     portfolio_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0F3460')),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 0), (-1, 0), FONT_BOLD),
+        ('FONTNAME', (0, 1), (-1, -1), FONT_REGULAR),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')]),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#BDC3C7')),
@@ -254,9 +309,9 @@ def generate_pdf_report(
     inf_rate = goal_analysis.get('inflation_rate', 0)
 
     story.append(Paragraph(
-        f"Hedeflediğiniz <b>{goal}</b> bugün <b>{current_goal:,.0f} ₺</b> değerindedir. "
+        f"Hedeflediğiniz <b>{goal}</b> bugün <b>{current_goal:,.0f} TL</b> değerindedir. "
         f"Türkiye'deki yıllık ~%{inf_rate*100:.0f} enflasyon dikkate alındığında "
-        f"{goal_years} yıl sonra yaklaşık <b>{real_goal:,.0f} ₺</b> olması beklenmektedir.",
+        f"{goal_years} yıl sonra yaklaşık <b>{real_goal:,.0f} TL</b> olması beklenmektedir.",
         style_body
     ))
     story.append(Spacer(1, 0.3*cm))
@@ -281,8 +336,8 @@ def generate_pdf_report(
 
         if expense_analysis.get('monthly_savings_potential', 0) > 0:
             story.append(Paragraph(
-                f"Aylık <b>{expense_analysis['monthly_savings_potential']:,.0f} ₺</b> tasarruf potansiyeli tespit edildi. "
-                f"Yıllık tasarruf potansiyeli: <b>{expense_analysis['annual_savings_potential']:,.0f} ₺</b>",
+                f"Aylık <b>{expense_analysis['monthly_savings_potential']:,.0f} TL</b> tasarruf potansiyeli tespit edildi. "
+                f"Yıllık tasarruf potansiyeli: <b>{expense_analysis['annual_savings_potential']:,.0f} TL</b>",
                 style_body
             ))
         story.append(Spacer(1, 0.8*cm))
@@ -291,7 +346,8 @@ def generate_pdf_report(
     story.append(Paragraph("5. Kişisel Tavsiyeler", style_heading))
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#BDC3C7')))
     story.append(Spacer(1, 0.3*cm))
-    story.append(Paragraph(gemini_advice, style_body))
+    advice_text = gemini_advice if gemini_advice else "Tavsiyeler şu an üretilemiyor."
+    story.append(Paragraph(advice_text, style_body))
     story.append(Spacer(1, 1*cm))
 
     # --- YASAL UYARI ---

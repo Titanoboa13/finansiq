@@ -242,7 +242,7 @@ def show_expenses():
 
         st.markdown("### 🤖 Gemini'nin Tasarruf Önerileri")
         st.markdown(f"""
-        <div style='background:#F7FAFC; border-radius:10px; padding:1.2rem; border:1px solid #E2E8F0;'>
+        <div style='background:#F7FAFC; border-radius:10px; padding:1.2rem; border:1px solid #E2E8F0; color:#1A1A2E;'>
             {expense_result['gemini_comment']}
         </div>
         """, unsafe_allow_html=True)

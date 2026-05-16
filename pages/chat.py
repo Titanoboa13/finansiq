@@ -70,7 +70,7 @@ def show_chat():
             risk_profile = profile.get('risk_profile', 'Dengeli')
             comm_level = profile.get('communication_level', 'orta')
             st.markdown(f"""
-            <div style='background:#EBF8FF; border-radius:12px; padding:1rem; margin-bottom:1rem; border-left:4px solid #63B3ED;'>
+            <div style='background:#EBF8FF; border-radius:12px; padding:1rem; margin-bottom:1rem; border-left:4px solid #63B3ED; color:#1A1A2E;'>
                 <b>🤖 FinansIQ:</b> Merhaba {st.session_state.user.get('name', '')}! 👋<br><br>
                 Risk profilin <b>{risk_profile}</b> olarak belirlendi.
                 Türkiye finans piyasaları, yatırım stratejileri veya kişisel finans konularında
@@ -83,9 +83,9 @@ def show_chat():
             if msg['role'] == 'user':
                 st.markdown(f"""
                 <div style='background:#EBF8FF; border-radius:12px; padding:0.8rem 1rem;
-                     margin:0.5rem 0; margin-left:2rem; border-left:4px solid #63B3ED;'>
-                    <b>👤 Sen:</b> {msg['content']}
-                </div>
+             margin:0.5rem 0; margin-left:2rem; border-left:4px solid #63B3ED; color:#1A1A2E;'>
+            <b>👤 Sen:</b> {msg['content']}
+        </div>
                 """, unsafe_allow_html=True)
             else:
                 is_risky = msg.get('is_risky', False)
@@ -93,8 +93,8 @@ def show_chat():
                 icon = "⚠️" if is_risky else "🤖"
                 st.markdown(f"""
                 <div style='background:#F0FFF4; border-radius:12px; padding:0.8rem 1rem;
-                     margin:0.5rem 0; margin-right:2rem; border-left:4px solid {border_color};'>
-                    <b>{icon} FinansIQ:</b> {msg['content']}
+             margin:0.5rem 0; margin-right:2rem; border-left:4px solid {border_color}; color:#1A1A2E;'>
+            <b>{icon} FinansIQ:</b> {msg['content']}
                 </div>
                 """, unsafe_allow_html=True)
 

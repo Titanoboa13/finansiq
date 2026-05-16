@@ -96,6 +96,7 @@ st.markdown("""
         border-radius: 8px;
         padding: 0.8rem 1rem;
         margin-bottom: 0.5rem;
+        color: #1A1A2E !important;
     }
     .stButton > button {
         border-radius: 8px;
