@@ -200,7 +200,7 @@ def show_scenarios():
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
             legend=dict(x=0, y=1),
-            xaxis=dict(gridcolor='#E2E8F0', title="Yıl"),
+            xaxis=dict(gridcolor='#E2E8F0', title="Yıl", tickformat='d', dtick=1),
             yaxis=dict(gridcolor='#E2E8F0', title="Değer (₺)"),
             margin=dict(l=10, r=10, t=20, b=10)
         )

@@ -232,7 +232,7 @@ def show_dashboard():
         plot_bgcolor='rgba(0,0,0,0)',
         legend=dict(x=0, y=1),
         margin=dict(l=10, r=10, t=10, b=10),
-        xaxis=dict(gridcolor='#E2E8F0'),
+        xaxis=dict(gridcolor='#E2E8F0', tickformat='d', dtick=1),
         yaxis=dict(gridcolor='#E2E8F0')
     )
     st.plotly_chart(fig2, use_container_width=True)
