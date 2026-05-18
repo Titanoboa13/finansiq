@@ -91,8 +91,8 @@ def create_portfolio_pie_chart(portfolio: dict):
         showlegend=True,
         paper_bgcolor='white',
         plot_bgcolor='white',
-        font=dict(family="Arial", size=11),
-        margin=dict(l=20, r=20, t=40, b=20)
+        font=dict(family="Arial", size=10),
+        margin=dict(l=60, r=40, t=60, b=80)
     )
     return fig
 
@@ -121,9 +121,11 @@ def create_projection_chart(projection_data: list, goal_amount: float, goal_type
         yaxis_title="Değer (TL)",
         paper_bgcolor='white',
         plot_bgcolor='white',
-        font=dict(family="Arial", size=11),
+        font=dict(family="Arial", size=10),
         legend=dict(x=0, y=1),
-        margin=dict(l=20, r=20, t=40, b=20)
+        margin=dict(l=60, r=40, t=60, b=80),
+        xaxis=dict(tickangle=-45, tickfont=dict(size=10)),
+        yaxis=dict(tickfont=dict(size=10))
     )
     return fig
 
@@ -144,8 +146,9 @@ def create_expense_bar_chart(category_totals: dict):
         paper_bgcolor='white',
         plot_bgcolor='white',
         font=dict(family="Arial", size=10),
-        margin=dict(l=20, r=20, t=40, b=80),
-        xaxis=dict(tickangle=-30)
+        margin=dict(l=60, r=40, t=60, b=80),
+        xaxis=dict(tickangle=-45, tickfont=dict(size=10)),
+        yaxis=dict(tickfont=dict(size=10))
     )
     return fig
 
@@ -347,8 +350,20 @@ def generate_pdf_report(
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#BDC3C7')))
     story.append(Spacer(1, 0.3*cm))
     advice_text = gemini_advice if gemini_advice else "Tavsiyeler şu an üretilemiyor."
-    story.append(Paragraph(advice_text, style_body))
-    story.append(Spacer(1, 1*cm))
+    import re as _re
+    # Strip markdown syntax (bold, italic, headers) for PDF rendering
+    advice_clean = _re.sub(r'\*\*(.+?)\*\*', r'\1', advice_text)
+    advice_clean = _re.sub(r'\*(.+?)\*', r'\1', advice_clean)
+    advice_clean = _re.sub(r'^#{1,6}\s+', '', advice_clean, flags=_re.MULTILINE)
+    # Split into paragraphs by blank lines
+    advice_parts = [p.strip() for p in advice_clean.split('\n\n') if p.strip()]
+    if not advice_parts:
+        advice_parts = [advice_clean]
+    for part in advice_parts:
+        part_text = ' '.join(part.split('\n'))
+        story.append(Paragraph(part_text, style_body))
+        story.append(Spacer(1, 0.2*cm))
+    story.append(Spacer(1, 0.8*cm))
 
     # --- YASAL UYARI ---
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#BDC3C7')))

@@ -68,13 +68,14 @@ def show_chat():
     with chat_container:
         if not st.session_state.chat_history:
             risk_profile = profile.get('risk_profile', 'Dengeli')
-            comm_level = profile.get('communication_level', 'orta')
             st.markdown(f"""
-            <div style='background:#EBF8FF; border-radius:12px; padding:1rem; margin-bottom:1rem; border-left:4px solid #63B3ED; color:#1A1A2E;'>
+            <div style='background:#F0FDFA;border-radius:12px;padding:1rem;
+                        margin-bottom:1rem;border-left:4px solid #0D9488;color:#0F172A;
+                        box-shadow:0 1px 3px rgba(0,0,0,0.05);'>
                 <b>🤖 FinansIQ:</b> Merhaba {st.session_state.user.get('name', '')}! 👋<br><br>
                 Risk profilin <b>{risk_profile}</b> olarak belirlendi.
-                Türkiye finans piyasaları, yatırım stratejileri veya kişisel finans konularında
-                sana yardımcı olmaya hazırım.<br><br>
+                Türkiye finans piyasaları, yatırım stratejileri veya kişisel finans
+                konularında sana yardımcı olmaya hazırım.<br><br>
                 Ne sormak istersin?
             </div>
             """, unsafe_allow_html=True)
@@ -82,19 +83,24 @@ def show_chat():
         for msg in st.session_state.chat_history:
             if msg['role'] == 'user':
                 st.markdown(f"""
-                <div style='background:#EBF8FF; border-radius:12px; padding:0.8rem 1rem;
-             margin:0.5rem 0; margin-left:2rem; border-left:4px solid #63B3ED; color:#1A1A2E;'>
-            <b>👤 Sen:</b> {msg['content']}
-        </div>
+                <div style='background:#EFF6FF;border-radius:12px;padding:0.8rem 1rem;
+                            margin:0.5rem 0;margin-left:2rem;
+                            border-left:4px solid #0EA5E9;color:#0F172A;
+                            box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+                    <b>👤 Sen:</b> {msg['content']}
+                </div>
                 """, unsafe_allow_html=True)
             else:
                 is_risky = msg.get('is_risky', False)
-                border_color = "#FC8181" if is_risky else "#68D391"
+                border_color = "#EF4444" if is_risky else "#0D9488"
+                bg_color = "#FFF1F2" if is_risky else "#F0FDFA"
                 icon = "⚠️" if is_risky else "🤖"
                 st.markdown(f"""
-                <div style='background:#F0FFF4; border-radius:12px; padding:0.8rem 1rem;
-             margin:0.5rem 0; margin-right:2rem; border-left:4px solid {border_color}; color:#1A1A2E;'>
-            <b>{icon} FinansIQ:</b> {msg['content']}
+                <div style='background:{bg_color};border-radius:12px;padding:0.8rem 1rem;
+                            margin:0.5rem 0;margin-right:2rem;
+                            border-left:4px solid {border_color};color:#0F172A;
+                            box-shadow:0 1px 3px rgba(0,0,0,0.04);'>
+                    <b>{icon} FinansIQ:</b> {msg['content']}
                 </div>
                 """, unsafe_allow_html=True)
 

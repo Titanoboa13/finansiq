@@ -175,17 +175,21 @@ def show_expenses():
                 fig = go.Figure(data=[go.Bar(
                     x=cats,
                     y=amounts,
-                    marker_color='#2E86AB',
+                    marker_color='#0D9488',
                     text=[f'{a:,.0f} ₺' for a in amounts],
                     textposition='auto',
+                    textfont=dict(color='#FFFFFF'),
                 )])
                 fig.update_layout(
-                    title="Kategori Bazlı Harcamalar",
+                    title=dict(text="Kategori Bazlı Harcamalar",
+                               font=dict(color='#0F172A', size=14)),
                     height=350,
                     paper_bgcolor='rgba(0,0,0,0)',
                     plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(tickangle=-30, gridcolor='#E2E8F0'),
-                    yaxis=dict(gridcolor='#E2E8F0'),
+                    xaxis=dict(tickangle=-30, gridcolor='#E2E8F0',
+                               tickfont=dict(color='#64748B')),
+                    yaxis=dict(gridcolor='#E2E8F0',
+                               tickfont=dict(color='#64748B')),
                     margin=dict(l=10, r=10, t=40, b=80)
                 )
                 st.plotly_chart(fig, use_container_width=True)
@@ -195,12 +199,15 @@ def show_expenses():
                 fig2 = go.Figure(data=[go.Pie(
                     labels=list(analysis['category_totals'].keys()),
                     values=list(analysis['category_totals'].values()),
-                    hole=0.4,
+                    hole=0.42,
+                    marker=dict(colors=['#0D9488','#0EA5E9','#7C3AED',
+                                        '#F59E0B','#EF4444','#22C55E','#EC4899'],
+                                line=dict(color='#FFFFFF', width=1)),
                     textinfo='percent',
-                    textfont_size=10,
+                    textfont=dict(size=10),
                 )])
                 fig2.update_layout(
-                    title="Dağılım",
+                    title=dict(text="Dağılım", font=dict(color='#0F172A', size=13)),
                     height=350,
                     paper_bgcolor='rgba(0,0,0,0)',
                     margin=dict(l=10, r=10, t=40, b=10),
@@ -241,11 +248,7 @@ def show_expenses():
             """, unsafe_allow_html=True)
 
         st.markdown("### 🤖 Gemini'nin Tasarruf Önerileri")
-        st.markdown(f"""
-        <div style='background:#F7FAFC; border-radius:10px; padding:1.2rem; border:1px solid #E2E8F0; color:#1A1A2E;'>
-            {expense_result['gemini_comment']}
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(expense_result['gemini_comment'])
 
         if analysis['monthly_savings_potential'] > 0 and st.session_state.portfolio_result:
             st.markdown("---")

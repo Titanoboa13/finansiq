@@ -126,8 +126,17 @@ Dikkat Çeken Harcamalar:
 Finansal Bilgi:
 {rag_context}
 
-Harcama alışkanlıkları hakkında 3-4 cümleyle değerlendirme yap.
-Somut tasarruf önerileri sun.
+Harcama alışkanlıklarını kısaca değerlendir, ardından somut tasarruf önerilerini
+numaralı liste formatında, aralarında boş satır bırakarak yaz.
+Format:
+Kısa değerlendirme cümlesi.
+
+1. **Başlık**: Öneri açıklaması.
+
+2. **Başlık**: Öneri açıklaması.
+
+3. **Başlık**: Öneri açıklaması.
+
 Türkçe yaz.
 """
 

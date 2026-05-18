@@ -135,6 +135,12 @@ Kullanıcı Özeti:
 Portföy: {', '.join([f'{k}: %{v*100:.0f}' for k, v in portfolio.items()])}
 
 Bu kullanıcıya özel 4-5 maddelik kişisel finansal tavsiye listesi oluştur.
+Her maddeyi numaralı liste formatında, aralarında boş satır bırakarak yaz.
+Format:
+1. **Başlık**: Açıklama cümlesi.
+
+2. **Başlık**: Açıklama cümlesi.
+
 Her madde somut ve uygulanabilir olsun.
 Türkçe yaz.
 """

@@ -21,7 +21,7 @@ def is_rate_limit_error(exception):
     retry=retry_if_exception_type(Exception),
     reraise=True
 )
-def generate_with_retry(prompt: str, model: str = "gemini-2.0-flash") -> str:
+def generate_with_retry(prompt: str, model: str = "gemini-2.5-flash") -> str:
     api_key = get_api_key()
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
@@ -30,7 +30,7 @@ def generate_with_retry(prompt: str, model: str = "gemini-2.0-flash") -> str:
     )
     return response.text
 
-def safe_generate(prompt: str, fallback: str = "", model: str = "gemini-2.0-flash") -> str:
+def safe_generate(prompt: str, fallback: str = "", model: str = "gemini-2.5-flash") -> str:
     now = time.time()
     cached = _cache.get(prompt)
     if cached:

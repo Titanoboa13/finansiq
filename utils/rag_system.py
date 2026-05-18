@@ -5,7 +5,6 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-import google as genai
 
 # --- FİNANSAL BİLGİ TABANI ---
 FINANCIAL_KNOWLEDGE_BASE = """

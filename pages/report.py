@@ -40,9 +40,11 @@ def show_report():
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("""
-        <div style='background:#F7FAFC; border-radius:10px; padding:1.2rem; border:1px solid #E2E8F0;'>
-            <h4 style='color:#0F3460; margin:0 0 0.8rem 0;'>📊 Raporda Neler Var?</h4>
-            <ul style='color:#4A5568; margin:0; padding-left:1.2rem;'>
+        <div style='background:#FFFFFF;border-radius:10px;padding:1.2rem;
+                    border:1px solid #E2E8F0;border-left:4px solid #0D9488;
+                    box-shadow:0 1px 3px rgba(0,0,0,0.05);'>
+            <h4 style='color:#0F172A;margin:0 0 0.8rem 0;'>📊 Raporda Neler Var?</h4>
+            <ul style='color:#64748B;margin:0;padding-left:1.2rem;line-height:1.9;'>
                 <li>Finansal profil özeti ve risk skoru</li>
                 <li>Portföy önerisi (pasta grafik dahil)</li>
                 <li>Enflasyon düzeltmeli hedef analizi</li>
@@ -56,14 +58,21 @@ def show_report():
 
     with col2:
         st.markdown(f"""
-        <div style='background:#F7FAFC; border-radius:10px; padding:1.2rem; border:1px solid #E2E8F0;'>
-            <h4 style='color:#0F3460; margin:0 0 0.8rem 0;'>👤 Profil Özeti</h4>
-            <table style='width:100%; color:#4A5568; font-size:0.9rem;'>
-                <tr><td><b>İsim:</b></td><td>{user.get('name')} {user.get('surname')}</td></tr>
-                <tr><td><b>Risk Profili:</b></td><td>{profile.get('risk_profile')}</td></tr>
-                <tr><td><b>Hedef:</b></td><td>{profile.get('financial_goal')}</td></tr>
-                <tr><td><b>Süre:</b></td><td>{profile.get('goal_years')} yıl</td></tr>
-                <tr><td><b>Birikim:</b></td><td>{profile.get('total_savings', 0):,.0f} ₺</td></tr>
+        <div style='background:#FFFFFF;border-radius:10px;padding:1.2rem;
+                    border:1px solid #E2E8F0;border-left:4px solid #0D9488;
+                    box-shadow:0 1px 3px rgba(0,0,0,0.05);'>
+            <h4 style='color:#0F172A;margin:0 0 0.8rem 0;'>👤 Profil Özeti</h4>
+            <table style='width:100%;color:#64748B;font-size:0.9rem;line-height:2;'>
+                <tr><td><b style='color:#0F172A;'>İsim:</b></td>
+                    <td>{user.get('name')} {user.get('surname')}</td></tr>
+                <tr><td><b style='color:#0F172A;'>Risk Profili:</b></td>
+                    <td>{profile.get('risk_profile')}</td></tr>
+                <tr><td><b style='color:#0F172A;'>Hedef:</b></td>
+                    <td>{profile.get('financial_goal')}</td></tr>
+                <tr><td><b style='color:#0F172A;'>Süre:</b></td>
+                    <td>{profile.get('goal_years')} yıl</td></tr>
+                <tr><td><b style='color:#0F172A;'>Birikim:</b></td>
+                    <td>{profile.get('total_savings', 0):,.0f} ₺</td></tr>
             </table>
         </div>
         """, unsafe_allow_html=True)
@@ -151,8 +160,9 @@ def show_report():
 
     # Rapor hakkında bilgi
     st.markdown("""
-    <div style='background:#FFFAF0; border-radius:10px; padding:1rem; border:1px solid #FED7AA;'>
-        <p style='color:#744210; font-size:0.85rem; margin:0;'>
+    <div style='background:#FFFBEB;border-radius:10px;padding:1rem;
+                border:1px solid #FDE68A;border-left:4px solid #F59E0B;'>
+        <p style='color:#78350F;font-size:0.85rem;margin:0;'>
             ⚠️ <b>Yasal Uyarı:</b> FinansIQ tarafından oluşturulan bu rapor yatırım tavsiyesi
             niteliği taşımamaktadır. Yatırım kararlarınızı vermeden önce lisanslı bir
             finansal danışmana başvurmanız önerilir.

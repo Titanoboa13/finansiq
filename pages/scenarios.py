@@ -179,29 +179,31 @@ def show_scenarios():
             x=base_years, y=base_values,
             mode='lines+markers',
             name='Baz Durum',
-            line=dict(color='#63B3ED', width=2, dash='dot'),
-            marker=dict(size=6)
+            line=dict(color='#94A3B8', width=2, dash='dot'),
+            marker=dict(size=6, color='#94A3B8')
         ))
         fig.add_trace(go.Scatter(
             x=scen_years, y=scen_values,
             mode='lines+markers',
             name=f'Senaryo: {sr["scenario_label"]}',
-            line=dict(color='#F6AD55', width=3),
-            marker=dict(size=8)
+            line=dict(color='#0D9488', width=3),
+            marker=dict(size=8, color='#0D9488')
         ))
         fig.add_trace(go.Scatter(
             x=base_years, y=goal_line,
             mode='lines',
             name='Hedef',
-            line=dict(color='#FC8181', width=2, dash='dash')
+            line=dict(color='#EF4444', width=2, dash='dash')
         ))
         fig.update_layout(
             height=380,
             paper_bgcolor='rgba(0,0,0,0)',
             plot_bgcolor='rgba(0,0,0,0)',
-            legend=dict(x=0, y=1),
-            xaxis=dict(gridcolor='#E2E8F0', title="Yıl", tickformat='d', dtick=1),
-            yaxis=dict(gridcolor='#E2E8F0', title="Değer (₺)"),
+            legend=dict(x=0, y=1, font=dict(color='#0F172A', size=12)),
+            xaxis=dict(gridcolor='#E2E8F0', title="Yıl",
+                       tickformat='d', dtick=1, tickfont=dict(color='#64748B')),
+            yaxis=dict(gridcolor='#E2E8F0', title="Değer (₺)",
+                       tickfont=dict(color='#64748B')),
             margin=dict(l=10, r=10, t=20, b=10)
         )
         st.plotly_chart(fig, use_container_width=True)

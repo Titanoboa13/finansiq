@@ -1,0 +1,30 @@
+# Secrets
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc.*
+
+# Virtual environment
+venv/
+
+# Databases & vector store
+data/finansiq.db
+data/chroma_db/
+
+# Temporary / editor files
+*.tmp.*
+*.tmp
+.DS_Store
+
+# Claude Code internal files
+.claude/
+
+# Test / scratch files
+test_gemini.py
+
+# Assets generator (not needed at runtime)
+assets/gen_banner.py
