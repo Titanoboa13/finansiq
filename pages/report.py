@@ -130,32 +130,23 @@ def show_report():
                     expense_analysis=expense_analysis,
                     gemini_advice=gemini_advice
                 )
-                st.session_state['report_pdf_bytes'] = pdf_bytes
-                st.session_state['report_pdf_filename'] = (
-                    f"FinansIQ_Rapor_{user.get('name')}_{user.get('surname')}.pdf"
-                )
+                st.session_state['pdf_bytes'] = pdf_bytes
                 placeholder.success("✅ Rapor hazır!")
             except Exception as e:
-                st.session_state.pop('report_pdf_bytes', None)
-                st.session_state.pop('report_pdf_filename', None)
+                st.session_state.pop('pdf_bytes', None)
                 placeholder.error(f"PDF oluşturulurken hata: {str(e)}")
                 st.error("Lütfen tekrar deneyin.")
 
-    if 'report_pdf_bytes' in st.session_state:
+    if 'pdf_bytes' in st.session_state:
         st.download_button(
-            label="📥 Finansal Planımı İndir (PDF)",
-            data=st.session_state['report_pdf_bytes'],
-            file_name=st.session_state.get(
-                'report_pdf_filename',
-                f"FinansIQ_Rapor_{user.get('name', '')}_{user.get('surname', '')}.pdf",
-            ),
+            label="📥 PDF İndir",
+            data=st.session_state['pdf_bytes'],
+            file_name="finansiq_rapor.pdf",
             mime="application/pdf",
-            use_container_width=True,
-            type="primary",
         )
         st.markdown("""
         <div class='success-card'>
-            ✅ Raporun hazır! <b>"Finansal Planımı İndir"</b> butonuna tıklayarak indirebilirsin.
+            ✅ Raporun hazır! <b>PDF İndir</b> ile dosyayı indirebilirsin.
         </div>
         """, unsafe_allow_html=True)
 
