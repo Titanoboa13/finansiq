@@ -7,10 +7,7 @@ from database.db import save_profile, get_profile
 from agents.profile_agent import LITERACY_QUESTIONS, calculate_literacy_score, run_profile_agent
 
 def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.getenv("GEMINI_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
 
 def show_profile():
     st.markdown("""

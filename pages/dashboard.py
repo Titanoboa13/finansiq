@@ -10,10 +10,7 @@ from agents.market_watcher import run_market_watcher
 from utils.market_data import get_all_market_data, get_data_status_message
 
 def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.getenv("GEMINI_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
 
 
 def show_dashboard():

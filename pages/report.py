@@ -9,10 +9,7 @@ from agents.orchestrator import generate_financial_advice
 from utils.pdf_generator import generate_pdf_report
 
 def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.getenv("GEMINI_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
 
 def show_report():
     user_id = st.session_state.user['id']
@@ -123,7 +120,6 @@ def show_report():
                 expense_result = run_expense_agent(expenses, profile, api_key)
                 expense_analysis = expense_result['analysis']
 
-            # PDF oluştur
             try:
                 pdf_bytes = generate_pdf_report(
                     user_data=user,
@@ -134,27 +130,34 @@ def show_report():
                     expense_analysis=expense_analysis,
                     gemini_advice=gemini_advice
                 )
-
-                placeholder.success("✅ Rapor hazır!")
-
-                st.download_button(
-                    label="📥 Finansal Planımı İndir (PDF)",
-                    data=pdf_bytes,
-                    file_name=f"FinansIQ_Rapor_{user.get('name')}_{user.get('surname')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    type="primary"
+                st.session_state['report_pdf_bytes'] = pdf_bytes
+                st.session_state['report_pdf_filename'] = (
+                    f"FinansIQ_Rapor_{user.get('name')}_{user.get('surname')}.pdf"
                 )
-
-                st.markdown("""
-                <div class='success-card'>
-                    ✅ Raporun hazır! <b>"Finansal Planımı İndir"</b> butonuna tıklayarak indirebilirsin.
-                </div>
-                """, unsafe_allow_html=True)
-
+                placeholder.success("✅ Rapor hazır!")
             except Exception as e:
+                st.session_state.pop('report_pdf_bytes', None)
+                st.session_state.pop('report_pdf_filename', None)
                 placeholder.error(f"PDF oluşturulurken hata: {str(e)}")
                 st.error("Lütfen tekrar deneyin.")
+
+    if 'report_pdf_bytes' in st.session_state:
+        st.download_button(
+            label="📥 Finansal Planımı İndir (PDF)",
+            data=st.session_state['report_pdf_bytes'],
+            file_name=st.session_state.get(
+                'report_pdf_filename',
+                f"FinansIQ_Rapor_{user.get('name', '')}_{user.get('surname', '')}.pdf",
+            ),
+            mime="application/pdf",
+            use_container_width=True,
+            type="primary",
+        )
+        st.markdown("""
+        <div class='success-card'>
+            ✅ Raporun hazır! <b>"Finansal Planımı İndir"</b> butonuna tıklayarak indirebilirsin.
+        </div>
+        """, unsafe_allow_html=True)
 
     st.divider()
 

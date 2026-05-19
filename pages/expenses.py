@@ -9,10 +9,7 @@ from database.db import get_profile, save_expenses, get_expenses
 from agents.expense_agent import run_expense_agent, parse_csv_expenses, EXPENSE_CATEGORIES
 
 def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.getenv("GEMINI_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
 
 def show_expenses():
     user_id = st.session_state.user['id']

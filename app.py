@@ -24,10 +24,7 @@ for _k, _v in {
         st.session_state[_k] = _v
 
 def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.getenv("GEMINI_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
 
 # ── GLOBAL CSS ────────────────────────────────────────────────────────────────
 st.markdown("""

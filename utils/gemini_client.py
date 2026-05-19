@@ -8,8 +8,8 @@ _cache: dict[str, tuple[str, float]] = {}
 def get_api_key():
     try:
         import streamlit as st
-        return st.secrets["GEMINI_API_KEY"]
-    except:
+        return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
+    except Exception:
         return os.getenv("GEMINI_API_KEY", "")
 
 def is_rate_limit_error(exception):

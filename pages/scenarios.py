@@ -9,10 +9,7 @@ from agents.scenario_agent import run_scenario_agent, SCENARIO_DEFINITIONS
 from agents.portfolio_agent import run_portfolio_agent
 
 def get_api_key():
-    try:
-        return st.secrets["GEMINI_API_KEY"]
-    except:
-        return os.getenv("GEMINI_API_KEY", "")
+    return st.secrets.get("GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", ""))
 
 def show_scenarios():
     user_id = st.session_state.user['id']

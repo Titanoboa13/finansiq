@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from utils.gemini_client import get_api_key
 
 # --- FİNANSAL BİLGİ TABANI ---
 FINANCIAL_KNOWLEDGE_BASE = """
@@ -109,15 +110,7 @@ def get_vectorstore():
     if _vectorstore is not None:
         return _vectorstore
 
-    api_key = os.getenv("GEMINI_API_KEY") or ""
-    if not api_key:
-        try:
-            import streamlit as st
-            api_key = st.secrets.get("GEMINI_API_KEY", "")
-        except:
-            pass
-
-    
+    api_key = get_api_key()
 
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=500,
