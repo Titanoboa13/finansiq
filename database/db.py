@@ -2,6 +2,9 @@ import sqlite3
 import bcrypt
 import os
 from datetime import datetime
+import pytz
+
+turkey_tz = pytz.timezone('Europe/Istanbul')
 
 DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'data', 'finansiq.db')
 
@@ -140,7 +143,7 @@ def save_profile(user_id, data):
             data.get('total_savings'), data.get('financial_goal'),
             data.get('goal_amount'), data.get('goal_years'),
             data.get('risk_profile'), data.get('literacy_score'),
-            data.get('communication_level'), datetime.now().isoformat(),
+            data.get('communication_level'), datetime.now(turkey_tz).isoformat(),
             user_id
         ))
     else:
@@ -231,7 +234,7 @@ def save_market_cache(key, value):
         ON CONFLICT(data_key) DO UPDATE SET
             data_value = excluded.data_value,
             updated_at = excluded.updated_at
-    ''', (key, value, datetime.now().isoformat()))
+    ''', (key, value, datetime.now(turkey_tz).isoformat()))
     conn.commit()
     conn.close()
 

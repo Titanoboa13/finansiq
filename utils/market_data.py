@@ -3,8 +3,11 @@ import requests
 import json
 from tenacity import retry, stop_after_attempt, wait_fixed
 from datetime import datetime
+import pytz
 import sys
 import os
+
+turkey_tz = pytz.timezone('Europe/Istanbul')
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.db import save_market_cache, get_market_cache
@@ -22,7 +25,7 @@ FALLBACK_DATA = {
 
 def _save_to_cache(key, value):
     try:
-        save_market_cache(key, json.dumps({"value": value, "timestamp": datetime.now().isoformat()}))
+        save_market_cache(key, json.dumps({"value": value, "timestamp": datetime.now(turkey_tz).isoformat()}))
     except:
         pass
 
@@ -122,7 +125,7 @@ def get_all_market_data():
         "tcmb_rate": {"value": tcmb, "source": tcmb_source},
         "inflation_rate": {"value": inflation, "source": inf_source},
         "fed_rate": {"value": fed, "source": fed_source},
-        "fetched_at": datetime.now().strftime("%d.%m.%Y %H:%M")
+        "fetched_at": datetime.now(turkey_tz).strftime("%d.%m.%Y %H:%M")
     }
     return data
 

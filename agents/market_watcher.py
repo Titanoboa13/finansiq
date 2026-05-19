@@ -7,6 +7,9 @@ from utils.market_data import get_all_market_data
 from database.db import save_alarm, get_market_cache, save_market_cache
 import json
 from datetime import datetime
+import pytz
+
+turkey_tz = pytz.timezone('Europe/Istanbul')
 
 THRESHOLDS = {
     "usd_try_spike": 2.0,
@@ -161,7 +164,7 @@ def run_market_watcher(user_id: int, profile_data: dict, api_key: str) -> list:
         "eur_try": current_data.get('eur_try', {}).get('value', 0),
         "gold_gram_try": current_data.get('gold_gram_try', {}).get('value', 0),
         "bist100": current_data.get('bist100', {}).get('value', 0),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now(turkey_tz).isoformat()
     }
     save_market_cache(cache_key, json.dumps(cache_data))
 

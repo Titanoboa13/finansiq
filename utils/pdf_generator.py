@@ -3,7 +3,10 @@ import sys
 import io
 import urllib.request
 from datetime import datetime
+import pytz
 import plotly.graph_objects as go
+
+turkey_tz = pytz.timezone('Europe/Istanbul')
 import plotly.io as pio
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -85,8 +88,10 @@ FONT_REGULAR, FONT_BOLD, FONT_ITALIC = _register_fonts()
 
 def fig_to_image(fig, width=400, height=300):
     try:
-        img_bytes = pio.to_image(fig, format="png", width=width, height=height, scale=2)
-        return io.BytesIO(img_bytes)
+        img_bytes = pio.to_image(fig, format="png", width=width, height=height, scale=2, engine='kaleido')
+        buf = io.BytesIO(img_bytes)
+        buf.seek(0)
+        return buf
     except Exception as e:
         return None
 
@@ -248,7 +253,7 @@ def generate_pdf_report(
     story.append(Spacer(1, 0.3*cm))
 
     user_name = f"{user_data.get('name', '')} {user_data.get('surname', '')}"
-    report_date = datetime.now().strftime("%d.%m.%Y %H:%M")
+    report_date = datetime.now(turkey_tz).strftime("%d.%m.%Y %H:%M")
     story.append(Paragraph(f"Hazırlayan: <b>{user_name}</b>", style_body))
     story.append(Paragraph(f"Tarih: {report_date}", style_body))
     story.append(Spacer(1, 1*cm))

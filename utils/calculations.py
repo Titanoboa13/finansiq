@@ -1,5 +1,8 @@
 import numpy as np
 from datetime import datetime
+import pytz
+
+turkey_tz = pytz.timezone('Europe/Istanbul')
 
 INFLATION_RATES = {
     "konut": 0.45,
@@ -85,7 +88,7 @@ def calculate_projection(
         for month in range(12):
             current_value = current_value * (1 + monthly_return) + monthly_contribution
         projection_by_year.append({
-            "year": datetime.now().year + year,
+            "year": datetime.now(turkey_tz).year + year,
             "value": round(current_value, 2)
         })
 
