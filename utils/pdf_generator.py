@@ -1,6 +1,7 @@
 import os
 import sys
 import io
+import urllib.request
 from datetime import datetime
 import plotly.graph_objects as go
 import plotly.io as pio
@@ -15,54 +16,69 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), '..'))
+_ASSETS_DIR = os.path.join(_ROOT, 'assets')
+
+# Official DejaVu 2.37 TTF bundle (single download; GitHub raw paths for individual TTFs are unreliable).
+_DEJAVU_TARBALL_URL = (
+    'https://downloads.sourceforge.net/project/dejavu/dejavu/2.37/dejavu-fonts-ttf-2.37.tar.bz2'
+)
+_DEJAVU_TAR_PREFIX = 'dejavu-fonts-ttf-2.37/ttf/'
+_DEJAVU_FILES = ('DejaVuSans.ttf', 'DejaVuSans-Bold.ttf', 'DejaVuSans-Oblique.ttf')
+
+
+def _ensure_dejavu_fonts():
+    os.makedirs(_ASSETS_DIR, exist_ok=True)
+    paths = [os.path.join(_ASSETS_DIR, f) for f in _DEJAVU_FILES]
+    if all(os.path.isfile(p) for p in paths):
+        return
+    import shutil
+    import tarfile
+    import tempfile
+
+    fd, tmp_path = tempfile.mkstemp(suffix='.tar.bz2')
+    os.close(fd)
+    try:
+        urllib.request.urlretrieve(_DEJAVU_TARBALL_URL, tmp_path)
+        with tarfile.open(tmp_path, 'r:bz2') as archive:
+            for fname in _DEJAVU_FILES:
+                member_name = _DEJAVU_TAR_PREFIX + fname
+                member = archive.getmember(member_name)
+                source = archive.extractfile(member)
+                dest = os.path.join(_ASSETS_DIR, fname)
+                with open(dest, 'wb') as out:
+                    shutil.copyfileobj(source, out)
+    finally:
+        try:
+            os.remove(tmp_path)
+        except OSError:
+            pass
+
+
 def _register_fonts():
-    font_paths = [
-        ("TurkishFont", r"C:\Windows\Fonts\arial.ttf"),
-        ("TurkishFont", r"C:\Windows\Fonts\tahoma.ttf"),
-        ("TurkishFont", r"C:\Windows\Fonts\calibri.ttf"),
-    ]
-    font_bold_paths = [
-        ("TurkishFontBold", r"C:\Windows\Fonts\arialbd.ttf"),
-        ("TurkishFontBold", r"C:\Windows\Fonts\tahomabd.ttf"),
-        ("TurkishFontBold", r"C:\Windows\Fonts\calibrib.ttf"),
-    ]
-    font_italic_paths = [
-        ("TurkishFontItalic", r"C:\Windows\Fonts\ariali.ttf"),
-        ("TurkishFontItalic", r"C:\Windows\Fonts\calibrii.ttf"),
-    ]
+    """Register DejaVu TTFs for Turkish (Unicode) text in PDFs."""
+    try:
+        _ensure_dejavu_fonts()
+    except Exception:
+        pass
 
-    reg_font = "Helvetica"
-    reg_bold = "Helvetica-Bold"
-    reg_italic = "Helvetica-Oblique"
+    regular_path = os.path.join(_ASSETS_DIR, 'DejaVuSans.ttf')
+    bold_path = os.path.join(_ASSETS_DIR, 'DejaVuSans-Bold.ttf')
+    oblique_path = os.path.join(_ASSETS_DIR, 'DejaVuSans-Oblique.ttf')
 
-    for name, path in font_paths:
-        if os.path.exists(path):
-            try:
-                pdfmetrics.registerFont(TTFont(name, path))
-                reg_font = name
-                break
-            except:
-                continue
+    if not os.path.isfile(regular_path) or not os.path.isfile(bold_path):
+        return 'Helvetica', 'Helvetica-Bold', 'Helvetica-Oblique'
 
-    for name, path in font_bold_paths:
-        if os.path.exists(path):
-            try:
-                pdfmetrics.registerFont(TTFont(name, path))
-                reg_bold = name
-                break
-            except:
-                continue
+    registered = set(pdfmetrics.getRegisteredFontNames())
+    if 'DejaVu' not in registered:
+        pdfmetrics.registerFont(TTFont('DejaVu', regular_path))
+    if 'DejaVu-Bold' not in registered:
+        pdfmetrics.registerFont(TTFont('DejaVu-Bold', bold_path))
+    if os.path.isfile(oblique_path) and 'DejaVu-Oblique' not in registered:
+        pdfmetrics.registerFont(TTFont('DejaVu-Oblique', oblique_path))
 
-    for name, path in font_italic_paths:
-        if os.path.exists(path):
-            try:
-                pdfmetrics.registerFont(TTFont(name, path))
-                reg_italic = name
-                break
-            except:
-                continue
-
-    return reg_font, reg_bold, reg_italic
+    italic = 'DejaVu-Oblique' if os.path.isfile(oblique_path) else 'DejaVu'
+    return 'DejaVu', 'DejaVu-Bold', italic
 
 FONT_REGULAR, FONT_BOLD, FONT_ITALIC = _register_fonts()
 
