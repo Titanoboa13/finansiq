@@ -131,24 +131,19 @@ def show_report():
                     gemini_advice=gemini_advice
                 )
                 st.session_state['pdf_bytes'] = pdf_bytes
-                placeholder.success("✅ Rapor hazır!")
+                placeholder.empty()
             except Exception as e:
                 st.session_state.pop('pdf_bytes', None)
                 placeholder.error(f"PDF oluşturulurken hata: {str(e)}")
-                st.error("Lütfen tekrar deneyin.")
 
     if 'pdf_bytes' in st.session_state:
+        st.success("✅ Raporun hazır! Aşağıdaki düğmeyle indirebilirsin.")
         st.download_button(
             label="📥 PDF İndir",
             data=st.session_state['pdf_bytes'],
             file_name="finansiq_rapor.pdf",
             mime="application/pdf",
         )
-        st.markdown("""
-        <div class='success-card'>
-            ✅ Raporun hazır! <b>PDF İndir</b> ile dosyayı indirebilirsin.
-        </div>
-        """, unsafe_allow_html=True)
 
     st.divider()
 
