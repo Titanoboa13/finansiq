@@ -78,49 +78,26 @@ def show_report():
 
     # PDF oluştur butonu
     st.markdown("### 📥 Raporu Oluştur ve İndir")
-    st.info("Rapor oluşturma işlemi 15-30 saniye sürebilir. Gemini kişisel tavsiyeler üretiyor.")
+    st.info("Rapor oluşturma işlemi 45-60 saniye sürebilir. Gemini kişisel tavsiyeler üretiyor.")
 
     if st.button("🚀 PDF Raporu Oluştur", type="primary", use_container_width=True):
-        with st.spinner(""):
-            steps = [
-                "📊 Piyasa verileri çekiliyor...",
-                "💼 Portföy analiz ediliyor...",
-                "🎯 Hedef hesaplanıyor...",
-                "🤖 Gemini kişisel tavsiyeler üretiyor...",
-                "📄 PDF oluşturuluyor...",
-                "🎨 Grafikler PDF'e ekleniyor..."
-            ]
-            placeholder = st.empty()
-            import time
-
-            for step in steps[:-2]:
-                placeholder.info(step)
-                time.sleep(0.5)
-
-            # Portföy analizi
-            if st.session_state.portfolio_result is None:
-                portfolio_result = run_portfolio_agent(profile, api_key)
-                st.session_state.portfolio_result = portfolio_result
-            else:
-                portfolio_result = st.session_state.portfolio_result
-
-            placeholder.info(steps[-2])
-
-            # Gemini tavsiyeleri
-            gemini_advice = generate_financial_advice(profile, portfolio_result, api_key)
-
-            placeholder.info(steps[-1])
-            time.sleep(0.3)
-
-            # Harcama analizi
-            expenses = get_expenses(user_id)
-            expense_analysis = {}
-            if expenses:
-                from agents.expense_agent import run_expense_agent
-                expense_result = run_expense_agent(expenses, profile, api_key)
-                expense_analysis = expense_result['analysis']
-
+        with st.spinner("PDF oluşturuluyor..."):
             try:
+                if st.session_state.portfolio_result is None:
+                    portfolio_result = run_portfolio_agent(profile, api_key)
+                    st.session_state.portfolio_result = portfolio_result
+                else:
+                    portfolio_result = st.session_state.portfolio_result
+
+                gemini_advice = generate_financial_advice(profile, portfolio_result, api_key)
+
+                expenses = get_expenses(user_id)
+                expense_analysis = {}
+                if expenses:
+                    from agents.expense_agent import run_expense_agent
+                    expense_result = run_expense_agent(expenses, profile, api_key)
+                    expense_analysis = expense_result['analysis']
+
                 pdf_bytes = generate_pdf_report(
                     user_data=user,
                     profile_data=profile,
@@ -131,18 +108,20 @@ def show_report():
                     gemini_advice=gemini_advice
                 )
                 st.session_state['pdf_bytes'] = pdf_bytes
-                placeholder.empty()
+                st.session_state['pdf_ready'] = True
             except Exception as e:
                 st.session_state.pop('pdf_bytes', None)
-                placeholder.error(f"PDF oluşturulurken hata: {str(e)}")
+                st.session_state['pdf_ready'] = False
+                st.error(f"PDF oluşturulurken hata: {str(e)}")
 
-    if 'pdf_bytes' in st.session_state:
+    if st.session_state.get('pdf_ready') and st.session_state.get('pdf_bytes'):
         st.success("✅ Raporun hazır! Aşağıdaki düğmeyle indirebilirsin.")
         st.download_button(
             label="📥 PDF İndir",
             data=st.session_state['pdf_bytes'],
             file_name="finansiq_rapor.pdf",
             mime="application/pdf",
+            key="pdf_download",
         )
 
     st.divider()
