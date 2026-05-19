@@ -88,11 +88,11 @@ FONT_REGULAR, FONT_BOLD, FONT_ITALIC = _register_fonts()
 
 def fig_to_image(fig, width=400, height=300):
     try:
-        img_bytes = pio.to_image(fig, format="png", width=width, height=height, scale=2, engine='kaleido')
+        img_bytes = fig.to_image(format="png", width=width, height=height)
         buf = io.BytesIO(img_bytes)
         buf.seek(0)
         return buf
-    except Exception as e:
+    except Exception:
         return None
 
 def create_portfolio_pie_chart(portfolio: dict):
@@ -296,10 +296,17 @@ def generate_pdf_report(
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#BDC3C7')))
     story.append(Spacer(1, 0.3*cm))
 
-    pie_fig = create_portfolio_pie_chart(portfolio)
-    pie_img = fig_to_image(pie_fig, width=500, height=320)
-    if pie_img:
-        story.append(Image(pie_img, width=14*cm, height=9*cm))
+    try:
+        pie_fig = go.Figure(data=[go.Pie(
+            labels=list(portfolio.keys()),
+            values=list(portfolio.values()),
+            hole=0.3,
+        )])
+        pie_fig.update_layout(width=400, height=300, margin=dict(l=20, r=20, t=20, b=20))
+        pie_img_bytes = pie_fig.to_image(format="png")
+        story.append(Image(io.BytesIO(pie_img_bytes), width=300, height=225))
+    except Exception:
+        pass
     story.append(Spacer(1, 0.5*cm))
 
     portfolio_table_data = [['Yatırım Aracı', 'Ağırlık', 'Tahmini Yıllık Getiri']]
